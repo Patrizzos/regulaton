@@ -1,0 +1,332 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── NextAuth ────────────────────────────────────────────────────────────────
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  @@unique([identifier, token])
+}
+
+// ─── Users & Orgs ────────────────────────────────────────────────────────────
+
+model User {
+  id            String               @id @default(cuid())
+  name          String?
+  email         String?              @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime             @default(now())
+  accounts      Account[]
+  sessions      Session[]
+  memberships   OrganizationMember[]
+}
+
+model Organization {
+  id             String        @id @default(cuid())
+  name           String
+  country        String
+  industry       String?
+  employeeCount  EmployeeRange
+  orgRole        OrgRole
+  website        String?
+  vatNumber      String?
+  trainingTarget Int?
+  inviteToken    String?       @unique
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  members         OrganizationMember[]
+  aiTools         OrganizationAITool[]
+  documents       ComplianceDocument[]
+  trainingRecords TrainingRecord[]
+  subscription    Subscription?
+  alerts          Alert[]
+  complianceScore ComplianceScore?
+}
+
+enum EmployeeRange {
+  SOLO
+  MICRO
+  SMALL
+  MEDIUM
+}
+
+enum OrgRole {
+  DEPLOYER
+  PROVIDER
+  BOTH
+}
+
+model OrganizationMember {
+  id             String     @id @default(cuid())
+  userId         String
+  organizationId String
+  role           MemberRole @default(MEMBER)
+  joinedAt       DateTime   @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  @@unique([userId, organizationId])
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+// ─── AI Tool Library ─────────────────────────────────────────────────────────
+
+model AIToolLibrary {
+  id                 String       @id @default(cuid())
+  name               String       @unique
+  providerCompany    String
+  category           ToolCategory
+  defaultRiskLevel   RiskLevel
+  riskRationale      String?      @db.Text
+  complianceNotes    String?      @db.Text
+  vendorActStatement Boolean      @default(false)
+  vendorStatementUrl String?
+  logoSlug           String?
+  websiteUrl         String?
+  isActive           Boolean      @default(true)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  orgTools           OrganizationAITool[]
+}
+
+enum ToolCategory {
+  WRITING_CONTENT
+  CUSTOMER_SUPPORT
+  RECRUITING_HR
+  FINANCE_ACCOUNTING
+  CODING_DEVELOPMENT
+  DATA_ANALYTICS
+  MARKETING
+  PRODUCTIVITY
+  IMAGE_VIDEO_GEN
+  RESEARCH
+  LEGAL
+  TRANSLATION
+  VOICE_AUDIO
+  OTHER
+}
+
+enum RiskLevel {
+  MINIMAL
+  LIMITED
+  HIGH
+  UNACCEPTABLE
+}
+
+// ─── Org Tool Inventory ───────────────────────────────────────────────────────
+
+model OrganizationAITool {
+  id                 String       @id @default(cuid())
+  organizationId     String
+  libraryToolId      String?
+  customName         String?
+  customProvider     String?
+  riskLevel          RiskLevel
+  category           ToolCategory
+  department         String?
+  usageDescription   String?      @db.Text
+  dataTypes          DataType[]
+  accountablePerson  String?
+  accountableEmail   String?
+  oversightProcedure String?      @db.Text
+  vendorCompliance   Boolean?
+  addedAt            DateTime     @default(now())
+  lastReviewedAt     DateTime?
+  nextReviewAt       DateTime?
+  status             ToolStatus   @default(ACTIVE)
+
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  libraryTool  AIToolLibrary? @relation(fields: [libraryToolId], references: [id])
+}
+
+enum DataType {
+  PERSONAL_DATA
+  SENSITIVE_PERSONAL_DATA
+  FINANCIAL_DATA
+  HEALTH_DATA
+  HR_DATA
+  CHILDREN_DATA
+  PUBLIC_DATA
+  ANONYMIZED_DATA
+}
+
+enum ToolStatus {
+  ACTIVE
+  INACTIVE
+  UNDER_REVIEW
+}
+
+// ─── Compliance Documents ─────────────────────────────────────────────────────
+
+model ComplianceDocument {
+  id             String         @id @default(cuid())
+  organizationId String
+  type           DocumentType
+  status         DocumentStatus @default(DRAFT)
+  staleReason    StaleReason?
+  content        Json
+  version        Int            @default(1)
+  generatedAt    DateTime       @default(now())
+  finalizedAt    DateTime?
+  updatedAt      DateTime       @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  @@unique([organizationId, type])
+}
+
+enum DocumentType {
+  ACCEPTABLE_USE_POLICY
+  AI_SYSTEM_REGISTER
+  LITERACY_TRAINING_RECORD
+  OVERSIGHT_PROCEDURE
+}
+
+enum DocumentStatus {
+  DRAFT
+  FINALIZED
+  NEEDS_UPDATE
+}
+
+enum StaleReason {
+  TOOLS_CHANGED
+  ORG_CHANGED
+}
+
+// ─── Training Records ─────────────────────────────────────────────────────────
+
+model TrainingRecord {
+  id             String   @id @default(cuid())
+  organizationId String
+  staffName      String
+  staffEmail     String
+  completedAt    DateTime
+  trainingType   String   @default("EU_AI_ACT_LITERACY_BASICS")
+  evidenceUrl    String?
+  notes          String?
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  // One row per (person, training type) — a person can complete several
+  // distinct trainings over time without overwriting earlier ones.
+  @@unique([organizationId, staffEmail, trainingType])
+}
+
+// ─── Compliance Score ─────────────────────────────────────────────────────────
+
+model ComplianceScore {
+  id                  String   @id @default(cuid())
+  organizationId      String   @unique
+  overallScore        Int
+  article4Literacy    Status
+  acceptableUsePolicy Status
+  aiSystemRegister    Status
+  humanOversight      Status
+  vendorDueDiligence  Status
+  calculatedAt        DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+enum Status {
+  COMPLIANT
+  PARTIAL
+  NON_COMPLIANT
+  NOT_APPLICABLE
+}
+
+// ─── Subscription ─────────────────────────────────────────────────────────────
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  organizationId       String             @unique
+  stripeCustomerId     String?            @unique
+  stripeSubscriptionId String?            @unique
+  plan                 Plan               @default(SOLO)
+  status               SubscriptionStatus @default(TRIALING)
+  trialEndsAt          DateTime?
+  currentPeriodEnd     DateTime?
+  canceledAt           DateTime?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+enum Plan {
+  SOLO
+  SMB
+  BUSINESS
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
+}
+
+// ─── Alerts ───────────────────────────────────────────────────────────────────
+
+model Alert {
+  id             String    @id @default(cuid())
+  organizationId String
+  type           AlertType
+  title          String
+  message        String    @db.Text
+  isRead         Boolean   @default(false)
+  actionUrl      String?
+  createdAt      DateTime  @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+enum AlertType {
+  REVIEW_DUE
+  REGULATION_UPDATE
+  DOCUMENT_NEEDS_UPDATE
+  TOOL_NEEDS_REVIEW
+  TRAINING_REMINDER
+  COMPLIANCE_RISK
+}

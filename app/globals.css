@@ -1,26 +1,194 @@
-@import "tailwindcss";
+/* app/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg:            #121316;
+  --bg-card:       #1E2024;
+  --bg-subtle:     #17181B;
+  --border:        #33363C;
+  --border-strong: #45484F;
+  --text-primary:  #F2F3F4;
+  --text-secondary:#A0A4AA;
+  --text-muted:    #6E7278;
+  --accent:        #34D399;
+  --accent-navy:   #047857;
+  --btn-primary-bg:    #059669;
+  --btn-primary-text:  #FFFFFF;
+  --btn-primary-hover: #047857;
+
+  --success:       #34D399;
+  --success-bg:    #0F2E1F;
+  --success-border:#1B4332;
+
+  --warning:       #FBBF24;
+  --warning-bg:    #2E220B;
+  --warning-border:#4A3610;
+
+  --danger:        #F87171;
+  --danger-bg:     #2E1215;
+  --danger-border: #4A1F24;
+
+  --info:          #60A5FA;
+  --info-bg:       #10192E;
+  --info-border:   #1E3350;
+
+  --purple:        #A78BFA;
+  --purple-bg:     #221B3D;
+  --purple-border: #382C5E;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background 0.15s, color 0.15s;
+}
+
+/* Remove default button/input styles */
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input, select, textarea {
+  font-family: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}
+
+@keyframes blink-dot {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.25; }
+}
+.blink-dot {
+  animation: blink-dot 1.6s ease-in-out infinite;
+}
+
+.pricing-cta {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  transition: background 0.15s, color 0.15s;
+}
+.pricing-cta:hover {
+  background: var(--btn-primary-hover);
+}
+
+.hamburger-btn:hover {
+  background: var(--bg-subtle);
+}
+
+/* Reusable hover states — inline styles can't do :hover, so interactive
+   elements pair a base inline style with one of these classes. */
+.btn-dark {
+  transition: background 0.15s, opacity 0.15s;
+}
+.btn-dark:hover {
+  background: var(--btn-primary-hover) !important;
+}
+
+.btn-green {
+  transition: background 0.15s;
+}
+.btn-green:hover {
+  background: var(--btn-primary-hover) !important;
+}
+
+.btn-outline-dark {
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.btn-outline-dark:hover {
+  background: rgba(255,255,255,0.08) !important;
+  border-color: var(--border-strong) !important;
+}
+
+.btn-outline-light {
+  transition: background 0.15s, border-color 0.15s;
+}
+.btn-outline-light:hover {
+  background: rgba(255,255,255,0.08) !important;
+  border-color: rgba(255,255,255,0.35) !important;
+}
+
+.btn-ghost:hover {
+  background: var(--bg-subtle) !important;
+}
+
+.btn-danger-ghost {
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-danger-ghost:hover {
+  color: #DC2626 !important;
+  background: #FEF2F2 !important;
+}
+
+.btn-amber {
+  transition: background 0.15s;
+}
+.btn-amber:hover {
+  background: #B45309 !important;
+}
+
+.btn-red {
+  transition: background 0.15s;
+}
+.btn-red:hover {
+  background: #B91C1C !important;
+}
+
+.link-hover {
+  transition: color 0.15s, opacity 0.15s;
+}
+.link-hover:hover {
+  opacity: 0.7;
+}
+
+.nav-link-hover {
+  transition: color 0.15s;
+}
+.nav-link-hover:hover {
+  color: var(--text-primary) !important;
+}
+
+.sidebar-link {
+  transition: background 0.15s, color 0.15s;
+}
+.sidebar-link:hover {
+  background: var(--bg-subtle) !important;
+  color: var(--text-primary) !important;
+}
+
+.card-hover {
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+.card-hover:hover {
+  border-color: var(--border-strong) !important;
+  box-shadow: 0 4px 16px rgba(26,35,50,0.06);
 }

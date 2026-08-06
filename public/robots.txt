@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+Allow: /pricing
+Allow: /privacy
+Allow: /terms
+Allow: /check
+
+Disallow: /dashboard
+Disallow: /inventory
+Disallow: /documents
+Disallow: /training
+Disallow: /settings
+Disallow: /onboarding
+Disallow: /invite/
+Disallow: /api/
+
+Sitemap: https://conformhq.com/sitemap.xml
