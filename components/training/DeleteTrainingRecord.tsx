@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { handleMutationError } from "@/lib/api-error";
 
 export function DeleteTrainingRecord({ id, name }: { id: string; name: string }) {
   const router  = useRouter();
@@ -12,7 +13,11 @@ export function DeleteTrainingRecord({ id, name }: { id: string; name: string })
     if (!confirm(`Remove training record for ${name}?`)) return;
     setLoading(true);
     try {
-      await fetch(`/api/training/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/training/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        await handleMutationError(res, router);
+        return;
+      }
       router.refresh();
     } finally {
       setLoading(false);

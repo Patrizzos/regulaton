@@ -1,6 +1,6 @@
 // app/(dashboard)/settings/page.tsx
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { authOptions, isAdmin } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { MemberRole } from "@prisma/client";
@@ -35,7 +35,7 @@ export default async function SettingsPage({
 
   const sub         = org.subscription;
   const isOwner     = session.orgRole === MemberRole.OWNER;
-  const isAdmin     = isOwner || session.orgRole === MemberRole.ADMIN;
+  const userIsAdmin = isAdmin(session);
   const memberCount = org.members.length;
   const isSoleOwner = isOwner && memberCount === 1;
 
@@ -75,13 +75,13 @@ export default async function SettingsPage({
           industry:  org.industry,
           vatNumber: org.vatNumber,
         }}
+        isAdmin={userIsAdmin}
       />
 
       {/* Team */}
       <TeamSection
         members={org.members as any}
-        inviteToken={org.inviteToken}
-        isOwner={isAdmin}
+        isOwner={userIsAdmin}
         plan={(sub?.plan ?? "SOLO") as PlanKey}
       />
 
@@ -92,6 +92,7 @@ export default async function SettingsPage({
         trialEndsAt={sub?.trialEndsAt ?? null}
         currentPeriodEnd={sub?.currentPeriodEnd ?? null}
         hasStripeCustomer={!!sub?.stripeCustomerId}
+        isAdmin={userIsAdmin}
       />
 
       {/* Account / sign out */}

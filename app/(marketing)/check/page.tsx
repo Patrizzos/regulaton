@@ -296,6 +296,11 @@ function ResultCard({ result }: { result: Result }) {
               );
             })}
           </div>
+          <div style={{ marginTop: 14, textAlign: "center" }}>
+            <Link href="/penalty-calculator" className="link-hover" style={{ fontSize: 13, color: "var(--danger)", textDecoration: "none", fontWeight: 600 }}>
+              Curious what non-compliance could cost? Calculate your exposure →
+            </Link>
+          </div>
         </div>
       )}
 
@@ -636,7 +641,7 @@ export default function CheckPage() {
                 Your EU AI Act assessment
               </h1>
               <p style={{ fontSize: 14, color: "var(--text-secondary)", margin: 0 }}>
-                Based on your answers · Not legal advice · <Link href="/check" className="link-hover" style={{ color: "var(--text-secondary)" }}>Retake</Link>
+                Based on your answers · Not legal advice
               </p>
             </div>
             <ResultCard result={result} />

@@ -1,6 +1,7 @@
 // lib/subscription.ts
 // Helpers for checking subscription access in API routes.
 
+import { NextResponse } from "next/server";
 import { prisma } from "./db";
 
 export type AccessResult =
@@ -54,4 +55,24 @@ export async function checkAccess(orgId: string): Promise<AccessResult> {
   }
 
   return { allowed: true };
+}
+
+// Convenience wrapper for API routes that mutate data (add/edit/delete a
+// tool, regenerate or finalise a document, log training, etc.). Read-only
+// (GET) routes deliberately do NOT call this — someone past their trial or
+// with a lapsed subscription can still view everything they already built
+// (dashboard, documents, inventory), they just can't create or change
+// anything further, or export, without active access. That's a deliberate
+// choice, not an oversight: a full lockout on data you can't even look at
+// feels punitive for a product whose whole pitch is "your compliance posture
+// stays current" — gating writes/exports is enough to create real pressure
+// to convert without making the product feel like it's holding data hostage.
+//
+// Usage:
+//   const denied = await requireAccess(session.orgId);
+//   if (denied) return denied;
+export async function requireAccess(orgId: string): Promise<NextResponse | null> {
+  const access = await checkAccess(orgId);
+  if (access.allowed) return null;
+  return NextResponse.json({ error: access.reason }, { status: access.code });
 }

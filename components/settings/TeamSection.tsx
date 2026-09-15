@@ -1,9 +1,10 @@
 "use client";
 // components/settings/TeamSection.tsx
-// Shows team members and a shareable invite link.
+// Shows team members. Regulaton is designed around one shared login per
+// organisation rather than open self-serve invites — an "anyone with this
+// link can join" mechanism was removed in favour of that. If you need to
+// add a specific person, share your login credentials directly with them.
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { PLANS, PlanKey } from "@/lib/plans";
 
 interface Member {
@@ -15,56 +16,21 @@ interface Member {
 
 interface Props {
   members: Member[];
-  inviteToken: string | null;
   isOwner: boolean;
   plan: PlanKey;
 }
 
+// Only OWNER exists as a role now (see MemberRole in schema.prisma) — kept
+// as a lookup rather than hardcoding the label inline in case a future
+// multi-user feature reintroduces other roles.
 const ROLE_LABELS: Record<string, string> = {
-  OWNER: "Owner", ADMIN: "Admin", MEMBER: "Member",
+  OWNER: "Owner",
 };
 
-export function TeamSection({ members, inviteToken: initial, isOwner, plan }: Props) {
-  const router = useRouter();
-  const [token, setToken]       = useState(initial);
-  const [loading, setLoading]   = useState(false);
-  const [copied, setCopied]     = useState(false);
-
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  const inviteUrl = token ? `${appUrl}/invite/${token}` : null;
-
+export function TeamSection({ members, isOwner, plan }: Props) {
   const planConfig = PLANS[plan];
   const overSeatBand = members.length > planConfig.maxSeats;
   const nextPlan = planConfig.nextPlan ? PLANS[planConfig.nextPlan] : null;
-
-  async function generateLink() {
-    setLoading(true);
-    try {
-      const res  = await fetch("/api/org/invite", { method: "POST" });
-      const data = await res.json();
-      setToken(data.inviteToken);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function revokeLink() {
-    if (!confirm("Revoke this invite link? Anyone who hasn't joined yet won't be able to use it.")) return;
-    setLoading(true);
-    try {
-      await fetch("/api/org/invite", { method: "DELETE" });
-      setToken(null);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function copyLink() {
-    if (!inviteUrl) return;
-    await navigator.clipboard.writeText(inviteUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
 
   return (
     <div className="px-4 py-5 sm:px-7 sm:py-6" style={S.card}>
@@ -106,7 +72,7 @@ export function TeamSection({ members, inviteToken: initial, isOwner, plan }: Pr
       )}
 
       {/* Members list */}
-      <div style={{ marginBottom: 24 }}>
+      <div>
         {members.map((m) => (
           <div key={m.id} style={{
             display: "flex", alignItems: "center", gap: 12,
@@ -145,53 +111,10 @@ export function TeamSection({ members, inviteToken: initial, isOwner, plan }: Pr
         ))}
       </div>
 
-      {/* Invite link — owners/admins only */}
       {isOwner && (
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 8 }}>
-            Invite link
-          </div>
-          <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "0 0 12px", lineHeight: 1.5 }}>
-            Anyone with this link can join your organisation as a member. Revoke and regenerate if you want to stop sharing access.
-          </p>
-
-          {inviteUrl ? (
-            <div className="flex flex-col sm:flex-row sm:items-center" style={{ gap: 8 }}>
-              <div style={{
-                flex: 1, padding: "8px 12px", background: "var(--bg-subtle)",
-                border: "1px solid var(--border)", borderRadius: 7,
-                fontSize: 12, color: "var(--text-secondary)", fontFamily: "IBM Plex Mono, monospace",
-                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-              }}>
-                {inviteUrl}
-              </div>
-              <div className="flex" style={{ gap: 8 }}>
-                <button onClick={copyLink} className={copied ? "" : "btn-dark"} style={{
-                  padding: "8px 14px", background: copied ? "var(--success)" : "var(--btn-primary-bg)",
-                  color: copied ? "#0B0E14" : "var(--btn-primary-text)", border: "none", borderRadius: 7, fontSize: 12,
-                  fontWeight: 600, cursor: "pointer", flexShrink: 0, fontFamily: "Inter, sans-serif",
-                }}>
-                  {copied ? "Copied!" : "Copy"}
-                </button>
-                <button onClick={revokeLink} disabled={loading} className={loading ? "" : "btn-danger-ghost"} style={{
-                  padding: "8px 14px", background: "var(--bg-card)", color: "var(--danger)",
-                  border: "1.5px solid var(--danger-border)", borderRadius: 7, fontSize: 12,
-                  fontWeight: 500, cursor: "pointer", flexShrink: 0, fontFamily: "Inter, sans-serif",
-                }}>
-                  Revoke
-                </button>
-              </div>
-            </div>
-          ) : (
-            <button onClick={generateLink} disabled={loading} className={loading ? "" : "btn-outline-dark"} style={{
-              padding: "9px 18px", background: "var(--bg-card)", color: "var(--text-primary)",
-              border: "1.5px solid var(--border)", borderRadius: 7, fontSize: 13,
-              fontWeight: 500, cursor: "pointer", fontFamily: "Inter, sans-serif",
-            }}>
-              {loading ? "Generating…" : "Generate invite link"}
-            </button>
-          )}
-        </div>
+        <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: "16px 0 0", lineHeight: 1.6 }}>
+          Regulaton is designed for a single shared login per organisation. To give a colleague access, share your account credentials directly rather than through an open invite link.
+        </p>
       )}
     </div>
   );

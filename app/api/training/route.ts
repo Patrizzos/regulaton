@@ -8,12 +8,16 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { normalizeEmail } from "@/lib/normalize";
+import { requireAccess } from "@/lib/subscription";
+import { TRAINING_TYPE_LABELS } from "@/lib/training-labels";
+
+const VALID_TRAINING_TYPES = Object.keys(TRAINING_TYPE_LABELS) as [string, ...string[]];
 
 const CreateSchema = z.object({
   staffName:     z.string().min(1),
   staffEmail:    z.string().email().transform(normalizeEmail),
   completedAt:   z.string(), // ISO date string from the form
-  trainingTypes: z.array(z.string()).min(1, "Select at least one training type"),
+  trainingTypes: z.array(z.enum(VALID_TRAINING_TYPES)).min(1, "Select at least one training type"),
   notes:         z.string().optional(),
   evidenceUrl:   z.string().url().optional().or(z.literal("")),
 });
@@ -33,6 +37,9 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.orgId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const denied = await requireAccess(session.orgId);
+  if (denied) return denied;
 
   const body   = await req.json();
   const parsed = CreateSchema.safeParse(body);

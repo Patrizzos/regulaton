@@ -11,6 +11,7 @@ const NAV = [
   { href: "/documents",  label: "Documents", icon: "◻" },
   { href: "/training",   label: "Training",  icon: "◈" },
   { href: "/learn",      label: "Guide",     icon: "▣" },
+  { href: "/penalty-calculator", label: "Fines", icon: "⬢" },
   { href: "/settings",   label: "Settings",  icon: "◎" },
 ];
 

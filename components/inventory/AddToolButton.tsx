@@ -4,6 +4,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { handleMutationError } from "@/lib/api-error";
 
 const CATEGORIES = [
   { value: "WRITING_CONTENT",    label: "Writing & Content" },
@@ -51,7 +52,7 @@ export function AddToolButton() {
   async function addLibraryTool(tool: any) {
     setSaving(true);
     try {
-      await fetch("/api/tools", {
+      const res = await fetch("/api/tools", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -60,6 +61,10 @@ export function AddToolButton() {
           category:      tool.category,
         }),
       });
+      if (!res.ok) {
+        await handleMutationError(res, router);
+        return;
+      }
       setOpen(false);
       setSearch("");
       setResults([]);
@@ -73,11 +78,15 @@ export function AddToolButton() {
     if (!custom.customName) return;
     setSaving(true);
     try {
-      await fetch("/api/tools", {
+      const res = await fetch("/api/tools", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(custom),
       });
+      if (!res.ok) {
+        await handleMutationError(res, router);
+        return;
+      }
       setOpen(false);
       setCustom({ customName: "", customProvider: "", riskLevel: "LIMITED", category: "OTHER" });
       router.refresh();

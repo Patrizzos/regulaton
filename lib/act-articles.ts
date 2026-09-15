@@ -60,6 +60,8 @@ export interface ActArticle {
   whoItAppliesTo: string;
   keyRequirements: string[];
   relatedDocSlug?: string;
+  externalToolUrl?: string;
+  externalToolLabel?: string;
 }
 
 export const ACT_ARTICLES: ActArticle[] = [
@@ -233,6 +235,25 @@ export const ACT_ARTICLES: ActArticle[] = [
     ],
   },
   {
+    id: "fundamental-rights-impact-assessment",
+    number: "Article 27",
+    category: "highRisk",
+    title: "Fundamental Rights Impact Assessment",
+    status: "extended",
+    effectiveDate: "Applies from 2 December 2027",
+    summary:
+      "Requires certain deployers of high-risk AI systems to assess, before first use, how the system could affect the fundamental rights of the people it touches — narrower than the other high-risk obligations, which apply to all deployers regardless of sector.",
+    whoItAppliesTo:
+      "Only bodies governed by public law (or private entities providing public services), and deployers using high-risk AI to assess creditworthiness or price life/health insurance risk. Most other deployers aren't required to complete one, though it's good practice.",
+    keyRequirements: [
+      "Describe the deployer's processes the system will be used in, and how often",
+      "Identify the categories of people likely to be affected and the specific risks of harm to their rights",
+      "Document human oversight measures and what happens if a risk materialises, including a complaint route",
+      "Notify the results to the relevant national market surveillance authority",
+    ],
+    relatedDocSlug: "fundamental-rights-assessment",
+  },
+  {
     id: "transparency-disclosure",
     number: "Article 50",
     category: "transparency",
@@ -297,5 +318,7 @@ export const ACT_ARTICLES: ActArticle[] = [
       "Up to €7.5 million or 1% of global annual turnover for supplying incorrect information to authorities",
       "Lower caps apply to SMEs and startups, using whichever figure is lower",
     ],
+    externalToolUrl: "/penalty-calculator",
+    externalToolLabel: "Calculate your exposure",
   },
 ];

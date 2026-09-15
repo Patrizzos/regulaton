@@ -8,6 +8,7 @@ import { prisma } from "@/lib/db";
 import { DocumentStatus } from "@prisma/client";
 import { TYPE_FROM_SLUG } from "@/lib/documents";
 import { calculateComplianceScore } from "@/lib/compliance/scorer";
+import { requireAccess } from "@/lib/subscription";
 
 export async function POST(
   req: NextRequest,
@@ -17,6 +18,9 @@ export async function POST(
   if (!session?.orgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const denied = await requireAccess(session.orgId);
+  if (denied) return denied;
 
   const docType = TYPE_FROM_SLUG[params.type];
   if (!docType) {

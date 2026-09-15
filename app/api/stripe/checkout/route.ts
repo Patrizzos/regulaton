@@ -8,6 +8,7 @@ import { prisma } from "@/lib/db";
 import { stripe, getPriceId } from "@/lib/stripe";
 import { PlanKey } from "@/lib/plans";
 import { z } from "zod";
+import { isAdmin } from "@/lib/auth";
 
 const Schema = z.object({
   plan: z.enum(["SOLO", "SMB", "BUSINESS"]),
@@ -17,6 +18,10 @@ export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id || !session.orgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!isAdmin(session)) {
+    return NextResponse.json({ error: "Only org owners and admins can manage billing." }, { status: 403 });
   }
 
   const body   = await req.json();
@@ -70,6 +75,21 @@ export async function POST(req: NextRequest) {
       metadata: { orgId: session.orgId, plan },
       trial_period_days: 14,
     },
+    // Calculates VAT (or applies reverse-charge for verified B2B EU VAT
+    // numbers) automatically at checkout, per destination-country rate.
+    // Requires Stripe Tax to be turned on and your tax registrations entered
+    // in the Stripe Dashboard (Settings → Tax) — this code alone doesn't make
+    // you compliant, it's the mechanism that becomes correct once that's
+    // configured. Until Tax is enabled in the dashboard, Stripe ignores this
+    // and charges no tax.
+    automatic_tax: { enabled: true },
+    // Lets a business customer enter their VAT number at checkout, which
+    // automatic_tax uses to apply reverse-charge (0% charged, buyer
+    // self-accounts) instead of charging VAT directly — the correct outcome
+    // for verified B2B sales per our earlier conversation.
+    tax_id_collection: { enabled: true },
+    // Prices in lib/plans.ts are the amount actually charged (VAT-exclusive);
+    // automatic_tax adds tax on top rather than carving it out of this amount.
   });
 
   return NextResponse.json({ url: checkoutSession.url });

@@ -9,9 +9,10 @@ Disallow: /dashboard
 Disallow: /inventory
 Disallow: /documents
 Disallow: /training
+Disallow: /learn
+Disallow: /penalty-calculator
 Disallow: /settings
 Disallow: /onboarding
-Disallow: /invite/
 Disallow: /api/
 
-Sitemap: https://conformhq.com/sitemap.xml
+Sitemap: https://regulaton.com/sitemap.xml

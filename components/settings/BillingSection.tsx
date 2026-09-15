@@ -10,11 +10,12 @@ interface Props {
   trialEndsAt: Date | null;
   currentPeriodEnd: Date | null;
   hasStripeCustomer: boolean;
+  isAdmin: boolean;
 }
 
 const UPGRADE_PLANS = Object.keys(PLANS) as PlanKey[];
 
-export function BillingSection({ plan, status, trialEndsAt, currentPeriodEnd, hasStripeCustomer }: Props) {
+export function BillingSection({ plan, status, trialEndsAt, currentPeriodEnd, hasStripeCustomer, isAdmin }: Props) {
   const [upgrading, setUpgrading]   = useState<string | null>(null);
   const [portalLoading, setPortal]  = useState(false);
 
@@ -32,7 +33,11 @@ export function BillingSection({ plan, status, trialEndsAt, currentPeriodEnd, ha
         body: JSON.stringify({ plan: targetPlan }),
       });
       const data = await res.json();
-      if (data.url) window.location.href = data.url;
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error ?? "Failed to start checkout. Please try again.");
+      }
     } catch {
       alert("Failed to start checkout. Please try again.");
     } finally {
@@ -98,7 +103,7 @@ export function BillingSection({ plan, status, trialEndsAt, currentPeriodEnd, ha
           </div>
         </div>
 
-        {hasStripeCustomer && (
+        {hasStripeCustomer && isAdmin && (
           <button
             onClick={handlePortal}
             disabled={portalLoading}
@@ -114,21 +119,33 @@ export function BillingSection({ plan, status, trialEndsAt, currentPeriodEnd, ha
         )}
       </div>
 
+      {!isAdmin && (
+        <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: "-8px 0 20px" }}>
+          Only org owners and admins can manage billing.
+        </p>
+      )}
+
       {/* Past due warning */}
       {isPastDue && (
         <div style={{
           padding: "12px 16px", background: "var(--danger-bg)", border: "1px solid var(--danger-border)",
           borderRadius: 8, fontSize: 13, color: "var(--danger)", marginBottom: 20,
         }}>
-          <strong>Payment failed.</strong> Update your payment method to keep access to Regulaton.{" "}
-          <button onClick={handlePortal} className="link-hover" style={{ color: "var(--danger)", background: "none", border: "none", cursor: "pointer", fontWeight: 600, fontFamily: "Inter, sans-serif", textDecoration: "underline" }}>
-            Update now
-          </button>
+          <strong>Payment failed.</strong> {isAdmin ? (
+            <>
+              Update your payment method to keep access to Regulaton.{" "}
+              <button onClick={handlePortal} className="link-hover" style={{ color: "var(--danger)", background: "none", border: "none", cursor: "pointer", fontWeight: 600, fontFamily: "Inter, sans-serif", textDecoration: "underline" }}>
+                Update now
+              </button>
+            </>
+          ) : (
+            "Ask an org owner or admin to update the payment method to keep access to Regulaton."
+          )}
         </div>
       )}
 
       {/* Upgrade options — shown during trial or on lower plans */}
-      {(isTrial || isActive) && (
+      {(isTrial || isActive) && isAdmin && (
         <>
           <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 12 }}>
             {isTrial ? "Choose a plan to continue after your trial:" : "Switch plan:"}

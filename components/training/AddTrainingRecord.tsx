@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { TRAINING_TYPE_LABELS } from "@/lib/training-labels";
+import { handleMutationError } from "@/lib/api-error";
 
 const TRAINING_TYPES = Object.entries(TRAINING_TYPE_LABELS).map(([value, label]) => ({ value, label }));
 
@@ -49,7 +50,10 @@ export function AddTrainingRecord() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      if (!res.ok) throw new Error("Failed");
+      if (!res.ok) {
+        await handleMutationError(res, router);
+        return;
+      }
       setForm({
         staffName: "", staffEmail: "",
         completedAt: new Date().toISOString().split("T")[0],
@@ -58,8 +62,6 @@ export function AddTrainingRecord() {
       });
       setOpen(false);
       router.refresh();
-    } catch {
-      alert("Something went wrong. Please try again.");
     } finally {
       setSaving(false);
     }

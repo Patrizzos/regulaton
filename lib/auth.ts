@@ -85,8 +85,9 @@ export const authOptions: NextAuthOptions = {
 export default authOptions;
 
 export function isAdmin(session: any): boolean {
-  return (
-    session?.orgRole === MemberRole.OWNER ||
-    session?.orgRole === MemberRole.ADMIN
-  );
+  // MemberRole only has OWNER now (see schema comment) — this still checks
+  // the actual value rather than returning true unconditionally, so a
+  // missing/null orgRole (e.g. a session that never resolved a membership)
+  // correctly fails closed instead of silently granting access.
+  return session?.orgRole === MemberRole.OWNER;
 }

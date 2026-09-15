@@ -4,6 +4,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { handleMutationError } from "@/lib/api-error";
 
 export function FinaliseButton({ docType }: { docType: string }) {
   const router = useRouter();
@@ -16,11 +17,12 @@ export function FinaliseButton({ docType }: { docType: string }) {
       const res = await fetch(`/api/documents/${docType}/finalise`, {
         method: "POST",
       });
-      if (!res.ok) throw new Error("Failed");
+      if (!res.ok) {
+        await handleMutationError(res, router);
+        return;
+      }
       setDone(true);
       router.refresh(); // re-fetch server component data
-    } catch {
-      alert("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }

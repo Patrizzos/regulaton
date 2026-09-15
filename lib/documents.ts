@@ -2,17 +2,19 @@
 import { DocumentType, DocumentStatus, StaleReason } from "@prisma/client";
 
 export const TYPE_FROM_SLUG: Record<string, DocumentType> = {
-  "acceptable-use-policy":  DocumentType.ACCEPTABLE_USE_POLICY,
-  "ai-system-register":     DocumentType.AI_SYSTEM_REGISTER,
-  "training-records":       DocumentType.LITERACY_TRAINING_RECORD,
-  "oversight-procedure":    DocumentType.OVERSIGHT_PROCEDURE,
+  "acceptable-use-policy":         DocumentType.ACCEPTABLE_USE_POLICY,
+  "ai-system-register":            DocumentType.AI_SYSTEM_REGISTER,
+  "training-records":              DocumentType.LITERACY_TRAINING_RECORD,
+  "oversight-procedure":           DocumentType.OVERSIGHT_PROCEDURE,
+  "fundamental-rights-assessment": DocumentType.FUNDAMENTAL_RIGHTS_ASSESSMENT,
 };
 
 export const SLUG_FROM_TYPE: Record<DocumentType, string> = {
-  [DocumentType.ACCEPTABLE_USE_POLICY]:    "acceptable-use-policy",
-  [DocumentType.AI_SYSTEM_REGISTER]:       "ai-system-register",
-  [DocumentType.LITERACY_TRAINING_RECORD]: "training-records",
-  [DocumentType.OVERSIGHT_PROCEDURE]:      "oversight-procedure",
+  [DocumentType.ACCEPTABLE_USE_POLICY]:          "acceptable-use-policy",
+  [DocumentType.AI_SYSTEM_REGISTER]:             "ai-system-register",
+  [DocumentType.LITERACY_TRAINING_RECORD]:       "training-records",
+  [DocumentType.OVERSIGHT_PROCEDURE]:            "oversight-procedure",
+  [DocumentType.FUNDAMENTAL_RIGHTS_ASSESSMENT]:  "fundamental-rights-assessment",
 };
 
 export const DOC_META: Record<DocumentType, {
@@ -44,6 +46,12 @@ export const DOC_META: Record<DocumentType, {
     articleRef:  "Article 14 · High-risk only · Deadline Dec 2027",
     description: "Required oversight procedures for any high-risk AI systems in use. Annex III deadline extended to December 2, 2027.",
     accentColor: "#A78BFA",
+  },
+  [DocumentType.FUNDAMENTAL_RIGHTS_ASSESSMENT]: {
+    title:       "Fundamental Rights Impact Assessment",
+    articleRef:  "Article 27 · Certain deployers only · Deadline Dec 2027",
+    description: "Assesses the impact of high-risk AI systems on individuals' fundamental rights. Mandatory for public bodies and deployers assessing creditworthiness or insurance risk — good practice for others.",
+    accentColor: "#FB923C",
   },
 };
 

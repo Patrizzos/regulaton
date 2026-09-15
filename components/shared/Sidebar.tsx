@@ -12,6 +12,7 @@ const NAV = [
   { href: "/documents",  label: "Documents",  icon: "◻" },
   { href: "/training",   label: "Training",   icon: "◈" },
   { href: "/learn",      label: "AI Act Guide", icon: "▣" },
+  { href: "/penalty-calculator", label: "Penalty Calculator", icon: "⬢" },
   { href: "/settings",   label: "Settings",   icon: "◎" },
 ];
 
@@ -22,15 +23,18 @@ const PLAN_LABELS: Record<string, string> = {
 interface SidebarProps {
   orgName: string;
   plan: string;
+  status: string;
   trialEndsAt: Date | null;
   unreadAlerts: number;
 }
 
-export function Sidebar({ orgName, plan, trialEndsAt, unreadAlerts }: SidebarProps) {
+export function Sidebar({ orgName, plan, status, trialEndsAt, unreadAlerts }: SidebarProps) {
   const pathname = usePathname();
 
-  const isTrial = !!trialEndsAt && new Date(trialEndsAt) > new Date();
-  const trialLabel = isTrial
+  const isTrialActive  = status === "TRIALING" && !!trialEndsAt && new Date(trialEndsAt) > new Date();
+  const trialExpired   = status === "TRIALING" && !isTrialActive;
+
+  const trialLabel = isTrialActive
     ? `Trial ends ${formatDistanceToNow(new Date(trialEndsAt!), { addSuffix: true })}`
     : null;
 
@@ -88,9 +92,9 @@ export function Sidebar({ orgName, plan, trialEndsAt, unreadAlerts }: SidebarPro
         })}
       </nav>
 
-      {/* Trial badge + sign out */}
+      {/* Plan / trial status + sign out */}
       <div style={{ padding: "16px 12px", borderTop: "1px solid var(--border)" }}>
-        {trialLabel && (
+        {isTrialActive && (
           <div style={{
             padding: "8px 10px", background: "var(--warning-bg)",
             border: "1px solid var(--warning-border)", borderRadius: 7, marginBottom: 10,
@@ -108,7 +112,59 @@ export function Sidebar({ orgName, plan, trialEndsAt, unreadAlerts }: SidebarPro
           </div>
         )}
 
-        {!trialLabel && (
+        {trialExpired && (
+          <div style={{
+            padding: "8px 10px", background: "var(--danger-bg)",
+            border: "1px solid var(--danger-border)", borderRadius: 7, marginBottom: 10,
+          }}>
+            <div style={{ fontSize: 11, color: "var(--danger)", fontWeight: 600, marginBottom: 2 }}>
+              Free trial ended
+            </div>
+            <div style={{ fontSize: 11, color: "var(--text-secondary)" }}>Subscribe to keep editing and exporting</div>
+            <Link href="/settings#billing" className="link-hover" style={{
+              display: "block", marginTop: 6, fontSize: 11,
+              color: "#059669", textDecoration: "none", fontWeight: 500,
+            }}>
+              Choose a plan →
+            </Link>
+          </div>
+        )}
+
+        {status === "PAST_DUE" && (
+          <div style={{
+            padding: "8px 10px", background: "var(--danger-bg)",
+            border: "1px solid var(--danger-border)", borderRadius: 7, marginBottom: 10,
+          }}>
+            <div style={{ fontSize: 11, color: "var(--danger)", fontWeight: 600, marginBottom: 2 }}>
+              Payment failed
+            </div>
+            <Link href="/settings#billing" className="link-hover" style={{
+              display: "block", marginTop: 6, fontSize: 11,
+              color: "#059669", textDecoration: "none", fontWeight: 500,
+            }}>
+              Update payment →
+            </Link>
+          </div>
+        )}
+
+        {status === "CANCELED" && (
+          <div style={{
+            padding: "8px 10px", background: "var(--danger-bg)",
+            border: "1px solid var(--danger-border)", borderRadius: 7, marginBottom: 10,
+          }}>
+            <div style={{ fontSize: 11, color: "var(--danger)", fontWeight: 600, marginBottom: 2 }}>
+              Subscription cancelled
+            </div>
+            <Link href="/settings#billing" className="link-hover" style={{
+              display: "block", marginTop: 6, fontSize: 11,
+              color: "#059669", textDecoration: "none", fontWeight: 500,
+            }}>
+              Resubscribe →
+            </Link>
+          </div>
+        )}
+
+        {status === "ACTIVE" && (
           <div style={{
             padding: "6px 10px", fontSize: 11,
             color: "var(--text-muted)", fontFamily: "IBM Plex Mono, monospace",
@@ -130,6 +186,19 @@ export function Sidebar({ orgName, plan, trialEndsAt, unreadAlerts }: SidebarPro
         >
           Sign out
         </button>
+
+        <a
+          href="mailto:hello@regulaton.com?subject=Regulaton%20support"
+          className="sidebar-link"
+          style={{
+            display: "block", width: "100%", padding: "8px 10px",
+            color: "var(--text-muted)", fontSize: 12,
+            textAlign: "left", borderRadius: 6, textDecoration: "none",
+            fontFamily: "Inter, sans-serif",
+          }}
+        >
+          Contact us / report an issue
+        </a>
       </div>
     </aside>
   );

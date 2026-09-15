@@ -670,6 +670,122 @@ export function generateOversightProcedure(
   };
 }
 
+// ─── Document 5: Fundamental Rights Impact Assessment (Article 27) ──────────
+//
+// Narrower than the other four documents: Article 27 only legally requires a
+// FRIA from specific deployer types — bodies governed by public law, private
+// entities providing public services, and deployers assessing creditworthiness
+// or life/health insurance risk — not every deployer of every high-risk system.
+// We generate it for any org with active high-risk tools (same population as
+// the Oversight Procedure) so it's ready if needed, but the document itself
+// leads with the applicability criteria so nobody mistakes "we generated one
+// for you" as "the law requires you to have one."
+
+export function generateFRIA(
+  org: Organization,
+  tools: OrganizationAITool[]
+): GeneratedDocument {
+  const highRiskTools = tools.filter(
+    (t) => t.riskLevel === RiskLevel.HIGH && t.status === "ACTIVE"
+  );
+
+  const blocks: Block[] = [
+    {
+      type: "note",
+      text: `Article 27 does not require every deployer of a high-risk AI system to complete a Fundamental Rights Impact Assessment. It's mandatory specifically for: bodies governed by public law (or private entities providing public services), and deployers using high-risk AI to assess creditworthiness or to price/assess risk for life and health insurance. If none of those describe ${org.name}, this document is good practice, not a legal requirement — confirm your own applicability with counsel before treating it as mandatory.`,
+    },
+    { type: "heading", level: 1, text: "Fundamental Rights Impact Assessment" },
+    {
+      type: "paragraph",
+      text: `Article 27 of the EU Artificial Intelligence Act requires certain deployers of high-risk AI systems to assess the impact those systems may have on the fundamental rights of the people affected by them, before putting the system into use. This document records that assessment for ${org.name}'s high-risk AI systems.`,
+    },
+    {
+      type: "paragraph",
+      text: `Organisation: ${org.name} | Country: ${org.country} | Assessment date: ${today()} | Next review: ${nextYear()}`,
+    },
+    { type: "divider" },
+
+    ...highRiskTools.flatMap((tool, i): Block[] => {
+      const toolName = (tool as any).customName ?? (tool as any).libraryTool?.name ?? "Unknown tool";
+      const accountable = tool.accountablePerson ?? "[Name to be assigned]";
+      const oversight = tool.oversightProcedure ?? "[Describe how staff review and can override AI decisions made by this tool]";
+
+      return [
+        { type: "heading", level: 2, text: `${i + 1}. ${toolName}` },
+
+        { type: "heading", level: 3, text: "(a) Deployer processes using this system" },
+        {
+          type: "paragraph",
+          text: tool.usageDescription ?? "[Describe the specific process this system is used within, and the decision or outcome it contributes to]",
+        },
+
+        { type: "heading", level: 3, text: "(b) Period and frequency of use" },
+        {
+          type: "paragraph",
+          text: "[Describe how often and for how long this system is used — e.g. continuously in daily operations, or for a defined project period]",
+        },
+
+        { type: "heading", level: 3, text: "(c) Categories of people likely to be affected" },
+        {
+          type: "paragraph",
+          text: "[Identify the categories of individuals or groups whose rights may be affected by this system's use — e.g. job applicants, loan applicants, policyholders, customers]",
+        },
+
+        { type: "heading", level: 3, text: "(d) Specific risks of harm" },
+        {
+          type: "paragraph",
+          text: "[Identify specific risks of harm to the fundamental rights of the affected people or groups identified above — e.g. risk of unfair discrimination, risk of an incorrect adverse decision going unreviewed]",
+        },
+
+        { type: "heading", level: 3, text: "(e) Human oversight measures" },
+        { type: "paragraph", text: oversight },
+
+        { type: "heading", level: 3, text: "(f) Mitigation and complaint mechanisms" },
+        {
+          type: "list",
+          items: [
+            `Affected individuals may raise concerns with ${accountable}, the accountable person for this system`,
+            "Any decision materially based on this system's output is subject to human review before being finalised",
+            "Suspected instances of unfair or discriminatory outcomes must be logged and investigated",
+            "This assessment will be revisited if the system's use, scope, or the population it affects changes materially",
+          ],
+        },
+        { type: "divider" },
+      ];
+    }),
+
+    ...(highRiskTools.length === 0
+      ? [
+          {
+            type: "paragraph" as const,
+            text: "No high-risk AI tools are currently registered. This document will be populated if high-risk tools are added to the inventory.",
+          },
+        ]
+      : []),
+
+    { type: "heading", level: 2, text: "Notifying the Market Surveillance Authority" },
+    {
+      type: "paragraph",
+      text: "Where this assessment is legally required (see the applicability note above), Article 27 also requires notifying the relevant national market surveillance authority of the results, using the template the AI Office is required to develop. Confirm the current notification process with your national authority before relying on this document alone.",
+    },
+    { type: "divider" },
+    {
+      type: "signature",
+      label: `AI Compliance Lead, ${org.name}`,
+      date: today(),
+    },
+  ];
+
+  return {
+    type: DocumentType.FUNDAMENTAL_RIGHTS_ASSESSMENT,
+    title: "Fundamental Rights Impact Assessment",
+    subtitle: `EU AI Act — Article 27 — ${org.name}`,
+    organizationName: org.name,
+    generatedAt: today(),
+    blocks,
+  };
+}
+
 // ─── Main entry point ─────────────────────────────────────────────────────────
 
 export function generateDocument(
@@ -687,6 +803,8 @@ export function generateDocument(
       return generateTrainingRecord(org, trainingRecords);
     case DocumentType.OVERSIGHT_PROCEDURE:
       return generateOversightProcedure(org, tools);
+    case DocumentType.FUNDAMENTAL_RIGHTS_ASSESSMENT:
+      return generateFRIA(org, tools);
     default:
       throw new Error(`Unknown document type: ${type}`);
   }
@@ -702,5 +820,6 @@ export function generateAllDocuments(
     generateRegister(org, tools),
     generateTrainingRecord(org, trainingRecords),
     generateOversightProcedure(org, tools),
+    generateFRIA(org, tools),
   ];
 }

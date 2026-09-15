@@ -8,6 +8,8 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { calculateComplianceScore } from "@/lib/compliance/scorer";
+import { createAlert } from "@/lib/alerts";
+import { requireAccess } from "@/lib/subscription";
 
 const UpdateSchema = z.object({
   department:         z.string().optional().nullable(),
@@ -25,6 +27,9 @@ export async function PATCH(
 ) {
   const session = await getServerSession(authOptions);
   if (!session?.orgId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const denied = await requireAccess(session.orgId);
+  if (denied) return denied;
 
   const tool = await prisma.organizationAITool.findUnique({ where: { id: params.id } });
   if (!tool || tool.organizationId !== session.orgId) {
@@ -55,10 +60,26 @@ export async function PATCH(
   ].some((key) => key in parsed.data);
 
   if (contentFieldsChanged) {
-    await prisma.complianceDocument.updateMany({
-      where: { organizationId: session.orgId },
+    // Only count documents that weren't already NEEDS_UPDATE — otherwise every
+    // PATCH in a multi-field edit session (e.g. the vendor-compliance toggle
+    // firing its own request, then "Save changes" firing another) would each
+    // report a non-zero count and create its own duplicate alert, even though
+    // nothing new actually went stale.
+    const { count } = await prisma.complianceDocument.updateMany({
+      where: { organizationId: session.orgId, status: { not: "NEEDS_UPDATE" } },
       data: { status: "NEEDS_UPDATE", staleReason: "TOOLS_CHANGED" },
     });
+
+    if (count > 0) {
+      const toolName = updated.customName ?? updated.libraryTool?.name ?? "A tool";
+      await createAlert(
+        session.orgId,
+        "DOCUMENT_NEEDS_UPDATE",
+        "Documents need updating",
+        `${toolName} was updated in your AI inventory. ${count} document${count === 1 ? "" : "s"} now need${count === 1 ? "s" : ""} to be regenerated.`,
+        "/documents"
+      );
+    }
   }
 
   // Recalculate score — vendor compliance changes affect the score
@@ -104,6 +125,9 @@ export async function DELETE(
   const session = await getServerSession(authOptions);
   if (!session?.orgId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const denied = await requireAccess(session.orgId);
+  if (denied) return denied;
+
   const tool = await prisma.organizationAITool.findUnique({ where: { id: params.id } });
   if (!tool || tool.organizationId !== session.orgId) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -116,10 +140,21 @@ export async function DELETE(
   });
 
   // Mark documents as needing update
-  await prisma.complianceDocument.updateMany({
-    where: { organizationId: session.orgId },
+  const { count } = await prisma.complianceDocument.updateMany({
+    where: { organizationId: session.orgId, status: { not: "NEEDS_UPDATE" } },
     data: { status: "NEEDS_UPDATE", staleReason: "TOOLS_CHANGED" },
   });
+
+  if (count > 0) {
+    const toolName = tool.customName ?? "A tool";
+    await createAlert(
+      session.orgId,
+      "DOCUMENT_NEEDS_UPDATE",
+      "Documents need updating",
+      `${toolName} was removed from your AI inventory. ${count} document${count === 1 ? "" : "s"} now need${count === 1 ? "s" : ""} to be regenerated.`,
+      "/documents"
+    );
+  }
 
   return NextResponse.json({ success: true });
 }

@@ -100,7 +100,7 @@ export function ArticleCard({ article, defaultOpen = false }: Props) {
             </p>
           </div>
 
-          <div style={{ marginBottom: relatedDoc ? 14 : 0 }}>
+          <div style={{ marginBottom: relatedDoc || article.externalToolUrl ? 14 : 0 }}>
             <div style={{
               fontFamily: "IBM Plex Mono, monospace", fontSize: 10, fontWeight: 600,
               letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-muted)", marginBottom: 8,
@@ -116,18 +116,32 @@ export function ArticleCard({ article, defaultOpen = false }: Props) {
             </ul>
           </div>
 
-          {relatedDoc && (
-            <Link
-              href={`/documents/${article.relatedDocSlug}`}
-              className="link-hover"
-              style={{
-                display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12.5,
-                fontWeight: 600, color: relatedDoc.accentColor, textDecoration: "none",
-              }}
-            >
-              Regulaton handles this with your {relatedDoc.title} →
-            </Link>
-          )}
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start" }}>
+            {relatedDoc && (
+              <Link
+                href={`/documents/${article.relatedDocSlug}`}
+                className="link-hover"
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12.5,
+                  fontWeight: 600, color: relatedDoc.accentColor, textDecoration: "none",
+                }}
+              >
+                Regulaton handles this with your {relatedDoc.title} →
+              </Link>
+            )}
+            {article.externalToolUrl && (
+              <Link
+                href={article.externalToolUrl}
+                className="link-hover"
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12.5,
+                  fontWeight: 600, color: meta.color, textDecoration: "none",
+                }}
+              >
+                {article.externalToolLabel ?? "Open tool"} →
+              </Link>
+            )}
+          </div>
         </div>
       )}
     </div>

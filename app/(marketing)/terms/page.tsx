@@ -60,7 +60,7 @@ export default function TermsPage() {
 
           <Section title="4. Subscription and payment">
             <p><strong>Free trial:</strong> New accounts receive a 14-day free trial with full access to all features. No credit card is required to start a trial.</p>
-            <p><strong>Paid plans:</strong> After the trial period, continued use requires a paid subscription. Prices are listed at regulaton.com/pricing and are inclusive of applicable VAT where required.</p>
+            <p><strong>Paid plans:</strong> After the trial period, continued use requires a paid subscription. Prices are listed at regulaton.com/pricing and are exclusive of applicable VAT, which is calculated automatically at checkout based on your location and, where applicable, your VAT registration status.</p>
             <p><strong>Billing:</strong> Subscriptions are billed monthly in advance. Payment is processed by Stripe. By subscribing, you authorise us to charge your payment method on a recurring basis.</p>
             <p><strong>Cancellation:</strong> You may cancel your subscription at any time through the billing portal in your account settings. Cancellation takes effect at the end of the current billing period. We do not provide refunds for partial periods.</p>
             <p><strong>Price changes:</strong> We will give at least 30 days' notice of any price increases via email.</p>

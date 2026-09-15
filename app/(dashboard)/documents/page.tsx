@@ -17,6 +17,7 @@ const ALL_TYPES = [
   DocumentType.AI_SYSTEM_REGISTER,
   DocumentType.LITERACY_TRAINING_RECORD,
   DocumentType.OVERSIGHT_PROCEDURE,
+  DocumentType.FUNDAMENTAL_RIGHTS_ASSESSMENT,
 ];
 
 export default async function DocumentsPage() {

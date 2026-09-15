@@ -1,9 +1,10 @@
 "use client";
 // components/settings/OrgSettings.tsx
-// Inline editing for org name, country, industry.
+// Inline editing for org name, country, industry — owners/admins only.
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { handleMutationError } from "@/lib/api-error";
 
 const EU_COUNTRIES = [
   { code: "AT", name: "Austria" }, { code: "BE", name: "Belgium" },
@@ -38,9 +39,10 @@ interface Props {
     industry: string | null;
     vatNumber: string | null;
   };
+  isAdmin: boolean;
 }
 
-export function OrgSettings({ org }: Props) {
+export function OrgSettings({ org, isAdmin }: Props) {
   const router  = useRouter();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved]   = useState(false);
@@ -59,7 +61,7 @@ export function OrgSettings({ org }: Props) {
   async function handleSave() {
     setSaving(true);
     try {
-      await fetch("/api/org", {
+      const res = await fetch("/api/org", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -69,10 +71,12 @@ export function OrgSettings({ org }: Props) {
           vatNumber: fields.vatNumber || null,
         }),
       });
+      if (!res.ok) {
+        await handleMutationError(res, router);
+        return;
+      }
       setSaved(true);
       router.refresh();
-    } catch {
-      alert("Failed to save. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -83,18 +87,19 @@ export function OrgSettings({ org }: Props) {
       <h2 style={S.cardTitle}>Organisation details</h2>
       <p style={S.cardSub}>
         These details appear in your generated compliance documents.
+        {!isAdmin && " Only org owners and admins can edit these."}
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2" style={{ gap: 16, marginBottom: 16 }}>
         <div style={S.field}>
           <label style={S.label}>Organisation name</label>
-          <input style={S.input}
+          <input style={S.input} disabled={!isAdmin}
             value={fields.name}
             onChange={(e) => update("name", e.target.value)} />
         </div>
         <div style={S.field}>
           <label style={S.label}>Country</label>
-          <select style={S.input}
+          <select style={S.input} disabled={!isAdmin}
             value={fields.country}
             onChange={(e) => update("country", e.target.value)}>
             {EU_COUNTRIES.map((c) => (
@@ -107,7 +112,7 @@ export function OrgSettings({ org }: Props) {
       <div className="grid grid-cols-1 sm:grid-cols-2" style={{ gap: 16, marginBottom: 20 }}>
         <div style={S.field}>
           <label style={S.label}>Industry</label>
-          <select style={S.input}
+          <select style={S.input} disabled={!isAdmin}
             value={fields.industry}
             onChange={(e) => update("industry", e.target.value)}>
             <option value="">Select industry</option>
@@ -116,32 +121,34 @@ export function OrgSettings({ org }: Props) {
         </div>
         <div style={S.field}>
           <label style={S.label}>VAT number <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>(optional)</span></label>
-          <input style={S.input} placeholder="e.g. DE123456789"
+          <input style={S.input} disabled={!isAdmin} placeholder="e.g. DE123456789"
             value={fields.vatNumber}
             onChange={(e) => update("vatNumber", e.target.value)} />
         </div>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className={saving ? "" : "btn-dark"}
-          style={{
-            padding: "9px 20px", background: saving ? "var(--text-muted)" : "var(--btn-primary-bg)",
-            color: "var(--btn-primary-text)", border: "none", borderRadius: 8, fontSize: 13,
-            fontWeight: 600, cursor: saving ? "not-allowed" : "pointer",
-            fontFamily: "Inter, sans-serif",
-          }}
-        >
-          {saving ? "Saving…" : "Save changes"}
-        </button>
-        {saved && (
-          <span style={{ fontSize: 13, color: "var(--success)", fontWeight: 500 }}>
-            ✓ Saved
-          </span>
-        )}
-      </div>
+      {isAdmin && (
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className={saving ? "" : "btn-dark"}
+            style={{
+              padding: "9px 20px", background: saving ? "var(--text-muted)" : "var(--btn-primary-bg)",
+              color: "var(--btn-primary-text)", border: "none", borderRadius: 8, fontSize: 13,
+              fontWeight: 600, cursor: saving ? "not-allowed" : "pointer",
+              fontFamily: "Inter, sans-serif",
+            }}
+          >
+            {saving ? "Saving…" : "Save changes"}
+          </button>
+          {saved && (
+            <span style={{ fontSize: 13, color: "var(--success)", fontWeight: 500 }}>
+              ✓ Saved
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

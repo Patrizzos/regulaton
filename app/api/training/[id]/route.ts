@@ -9,12 +9,16 @@ import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { normalizeEmail } from "@/lib/normalize";
+import { requireAccess } from "@/lib/subscription";
+import { TRAINING_TYPE_LABELS } from "@/lib/training-labels";
+
+const VALID_TRAINING_TYPES = Object.keys(TRAINING_TYPE_LABELS) as [string, ...string[]];
 
 const UpdateSchema = z.object({
   staffName:    z.string().min(1).optional(),
   staffEmail:   z.string().email().transform(normalizeEmail).optional(),
   completedAt:  z.string().optional(),
-  trainingType: z.string().optional(),
+  trainingType: z.enum(VALID_TRAINING_TYPES).optional(),
   notes:        z.string().optional(),
   evidenceUrl:  z.string().url().optional().or(z.literal("")),
 });
@@ -25,6 +29,9 @@ export async function PATCH(
 ) {
   const session = await getServerSession(authOptions);
   if (!session?.orgId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const denied = await requireAccess(session.orgId);
+  if (denied) return denied;
 
   const existing = await prisma.trainingRecord.findUnique({ where: { id: params.id } });
   if (!existing || existing.organizationId !== session.orgId) {
@@ -74,6 +81,9 @@ export async function DELETE(
 ) {
   const session = await getServerSession(authOptions);
   if (!session?.orgId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const denied = await requireAccess(session.orgId);
+  if (denied) return denied;
 
   // Verify the record belongs to this org before deleting
   const record = await prisma.trainingRecord.findUnique({

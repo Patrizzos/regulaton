@@ -4,6 +4,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { handleMutationError } from "@/lib/api-error";
 
 export function RegenerateButton({ docType }: { docType: string }) {
   const router = useRouter();
@@ -15,10 +16,11 @@ export function RegenerateButton({ docType }: { docType: string }) {
       const res = await fetch(`/api/documents/${docType}/regenerate`, {
         method: "POST",
       });
-      if (!res.ok) throw new Error("Failed");
+      if (!res.ok) {
+        await handleMutationError(res, router);
+        return;
+      }
       router.refresh();
-    } catch {
-      alert("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }

@@ -67,6 +67,10 @@ model Organization {
   vatNumber      String?
   trainingTarget Int?
   inviteToken    String?       @unique
+  // Soft-delete: set by DELETE /api/account, purged by the daily cron at
+  // app/api/cron/purge-deleted-orgs. Gives a 30-day recovery window instead
+  // of the previous instant, irreversible cascade delete.
+  deletionScheduledAt DateTime?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
@@ -96,7 +100,7 @@ model OrganizationMember {
   id             String     @id @default(cuid())
   userId         String
   organizationId String
-  role           MemberRole @default(MEMBER)
+  role           MemberRole @default(OWNER)
   joinedAt       DateTime   @default(now())
 
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -104,10 +108,13 @@ model OrganizationMember {
   @@unique([userId, organizationId])
 }
 
+// Regulaton assumes one login per organisation (see removal of the open
+// invite-link feature) — every OrganizationMember row is therefore always
+// its org's sole OWNER. Kept as an enum rather than a boolean/removed field
+// so a future multi-user feature has an obvious place to add roles back
+// without a breaking schema change.
 enum MemberRole {
   OWNER
-  ADMIN
-  MEMBER
 }
 
 // ─── AI Tool Library ─────────────────────────────────────────────────────────
@@ -220,6 +227,7 @@ enum DocumentType {
   AI_SYSTEM_REGISTER
   LITERACY_TRAINING_RECORD
   OVERSIGHT_PROCEDURE
+  FUNDAMENTAL_RIGHTS_ASSESSMENT
 }
 
 enum DocumentStatus {
@@ -308,6 +316,18 @@ enum SubscriptionStatus {
 }
 
 // ─── Alerts ───────────────────────────────────────────────────────────────────
+
+// ─── Webhook idempotency ────────────────────────────────────────────
+// Stripe explicitly documents at-least-once webhook delivery — the same
+// event can be redelivered (e.g. after a slow response). id is Stripe's own
+// event.id, claimed via a plain create() before processing; a duplicate
+// delivery hits the unique constraint and is skipped rather than reprocessed.
+
+model ProcessedWebhookEvent {
+  id          String   @id // Stripe event.id, e.g. "evt_..."
+  type        String
+  processedAt DateTime @default(now())
+}
 
 model Alert {
   id             String    @id @default(cuid())

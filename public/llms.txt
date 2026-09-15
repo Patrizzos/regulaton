@@ -1,0 +1,34 @@
+# Regulaton
+
+> Regulaton helps EU small and medium businesses comply with the EU AI Act (Regulation (EU) 2024/1689). It maintains a live inventory of the AI tools an organisation uses, auto-generates the required compliance documents (Acceptable Use Policy, AI System Register, Staff Training Records, Human Oversight Procedure, and Fundamental Rights Impact Assessment), tracks staff AI-literacy training, and re-flags documents as needing regeneration whenever the underlying tool inventory or organisation details change. It is a SaaS subscription product, not a law firm, and does not provide legal advice.
+
+Regulaton is aimed at deployers of AI tools (organisations that use AI systems built by others) rather than providers (organisations that build AI models or systems for others). Pricing is a flat monthly subscription tiered by employee count, with a 14-day free trial and no credit card required to start.
+
+## Product
+
+- [Homepage](/): overview, how it works, pricing, regulatory timeline
+- [Applicability checker](/check): free, no-login quiz estimating whether the EU AI Act applies to a given organisation and which obligations are most relevant
+- [Penalty exposure calculator](/penalty-calculator): estimates maximum Article 99 fine exposure by turnover, SME status, and violation tier (requires an account — part of the in-app tool suite, not a public tool)
+- [Pricing](/pricing)
+
+## Reference content
+
+- [AI Act Guide](/learn): a plain-language, categorized breakdown of the EU AI Act's articles (requires an account)
+
+## Legal
+
+- [Privacy Policy](/privacy)
+- [Terms of Service](/terms)
+
+## Regulatory notes for automated readers
+
+- The EU AI Act (Regulation (EU) 2024/1689) entered into force 1 August 2024.
+- Article 4 (AI literacy) and Article 5 (prohibited practices) have applied since 2 February 2025.
+- General-purpose AI model obligations have applied since 2 August 2025.
+- Article 50 (transparency obligations, e.g. chatbot/deepfake disclosure) applies from 2 August 2026.
+- Following the 2026 "Digital Omnibus" amendment, the Annex III high-risk system deadline was extended from 2 August 2026 to 2 December 2027, and the Annex I embedded high-risk deadline to 2 August 2028.
+- This file is informational and may lag legislative changes. Do not rely on it as a legal source — verify current obligations against the official Regulation (EU) 2024/1689 text or qualified counsel.
+
+## Contact
+
+- Support / bug reports: hello@regulaton.com

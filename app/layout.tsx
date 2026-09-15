@@ -15,6 +15,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://regulaton.com"),
   title: "Regulaton, EU AI Act Compliance for SMBs",
   description:
     "EU AI Act compliance in 20 minutes. Generate required compliance documents, track your AI tool inventory, and stay ahead of EU regulations, without lawyers.",

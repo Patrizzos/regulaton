@@ -75,15 +75,15 @@ export default function PrivacyPage() {
           </Section>
 
           <Section title="6. Third-party processors">
-            <p>We use the following sub-processors to provide our service:</p>
+            <p>We use the following sub-processors to provide our service. Where a processor is based outside the EU/EEA, we rely on the specific safeguard named below to make that transfer lawful under GDPR Chapter V.</p>
             <ul style={{ paddingLeft: 20, margin: "8px 0" }}>
-              <li style={{ marginBottom: 8 }}><strong>Neon</strong> — PostgreSQL database hosting (EU region). Your data is stored in the EU.</li>
-              <li style={{ marginBottom: 8 }}><strong>Vercel</strong> — Application hosting and edge network.</li>
-              <li style={{ marginBottom: 8 }}><strong>Stripe</strong> — Payment processing. Subject to Stripe's privacy policy.</li>
-              <li style={{ marginBottom: 8 }}><strong>Resend</strong> — Transactional email delivery.</li>
-              <li style={{ marginBottom: 8 }}><strong>GitHub</strong> — OAuth authentication (if you choose to sign in with GitHub).</li>
+              <li style={{ marginBottom: 8 }}><strong>Neon</strong> — PostgreSQL database hosting. Data is stored in an EU region. No international transfer occurs for this processor.</li>
+              <li style={{ marginBottom: 8 }}><strong>Vercel</strong> — Application hosting and edge network. Vercel Inc. (US) is certified under the EU-U.S. Data Privacy Framework (DPF), which the European Commission recognises as providing an adequate level of protection for transfers to certified U.S. organisations. Some content may be cached transiently at EU edge locations but is not stored there permanently.</li>
+              <li style={{ marginBottom: 8 }}><strong>Stripe</strong> — Payment processing. For EEA/UK customers, data is generally processed by Stripe Payments Europe Limited (an EU entity) and/or Stripe, LLC (US), which is DPF-certified; Stripe's Data Processing Agreement additionally incorporates the EU Standard Contractual Clauses (SCCs) as a supplementary safeguard.</li>
+              <li style={{ marginBottom: 8 }}><strong>Resend</strong> — Transactional email delivery. Resend (US) is DPF-certified, and its Data Processing Agreement also incorporates SCCs as a supplementary transfer mechanism.</li>
+              <li style={{ marginBottom: 8 }}><strong>GitHub</strong> — OAuth authentication (if you choose to sign in with GitHub). GitHub, Inc. (US) is DPF-certified.</li>
             </ul>
-            <p>All processors are bound by data processing agreements and provide appropriate safeguards for personal data.</p>
+            <p>All processors are bound by data processing agreements consistent with Article 28 GDPR. We review our sub-processor list periodically and will update this policy if it changes.</p>
           </Section>
 
           <Section title="7. Your rights under GDPR">

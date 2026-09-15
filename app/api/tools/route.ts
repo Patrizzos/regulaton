@@ -9,6 +9,8 @@ import { prisma } from "@/lib/db";
 import { RiskLevel, ToolCategory, ToolStatus } from "@prisma/client";
 import { z } from "zod";
 import { addDays } from "date-fns";
+import { createAlert } from "@/lib/alerts";
+import { requireAccess } from "@/lib/subscription";
 
 // GET /api/tools?library=true&q=hubspot — search the library
 // GET /api/tools — list org's own tools
@@ -59,6 +61,9 @@ export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.orgId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const denied = await requireAccess(session.orgId);
+  if (denied) return denied;
+
   const body   = await req.json();
   const parsed = AddToolSchema.safeParse(body);
   if (!parsed.success) {
@@ -88,10 +93,21 @@ export async function POST(req: NextRequest) {
   });
 
   // Mark documents as needing update since inventory changed
-  await prisma.complianceDocument.updateMany({
-    where: { organizationId: session.orgId },
+  const { count } = await prisma.complianceDocument.updateMany({
+    where: { organizationId: session.orgId, status: { not: "NEEDS_UPDATE" } },
     data: { status: "NEEDS_UPDATE", staleReason: "TOOLS_CHANGED" },
   });
+
+  if (count > 0) {
+    const toolName = tool.customName ?? tool.libraryTool?.name ?? "A new tool";
+    await createAlert(
+      session.orgId,
+      "DOCUMENT_NEEDS_UPDATE",
+      "Documents need updating",
+      `${toolName} was added to your AI inventory. ${count} document${count === 1 ? "" : "s"} now need${count === 1 ? "s" : ""} to be regenerated.`,
+      "/documents"
+    );
+  }
 
   return NextResponse.json(tool, { status: 201 });
 }

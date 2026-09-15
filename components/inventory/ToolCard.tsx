@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { handleMutationError } from "@/lib/api-error";
 
 interface Tool {
   id: string;
@@ -87,27 +88,37 @@ export function ToolCard({ tool }: { tool: Tool }) {
   async function handleSave() {
     setSaving(true);
     try {
-      await fetch(`/api/tools/${tool.id}`, {
+      const res = await fetch(`/api/tools/${tool.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(fields),
       });
+      if (!res.ok) {
+        await handleMutationError(res, router);
+        return;
+      }
       setExpanded(false);
       router.refresh();
-    } catch {
-      alert("Failed to save. Please try again.");
     } finally {
       setSaving(false);
     }
   }
 
   async function handleVendorToggle(value: boolean) {
+    const previous = fields.vendorCompliance;
     setFields((f) => ({ ...f, vendorCompliance: value }));
-    await fetch(`/api/tools/${tool.id}`, {
+    const res = await fetch(`/api/tools/${tool.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ vendorCompliance: value }),
     });
+    if (!res.ok) {
+      // Roll back the optimistic update — otherwise the UI shows a value
+      // that was never actually saved (e.g. if the trial just ended).
+      setFields((f) => ({ ...f, vendorCompliance: previous }));
+      await handleMutationError(res, router);
+      return;
+    }
     router.refresh();
   }
 
@@ -115,7 +126,11 @@ export function ToolCard({ tool }: { tool: Tool }) {
     if (!confirm(`Remove ${name} from your inventory?`)) return;
     setRemoving(true);
     try {
-      await fetch(`/api/tools/${tool.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/tools/${tool.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        await handleMutationError(res, router);
+        return;
+      }
       router.refresh();
     } finally {
       setRemoving(false);

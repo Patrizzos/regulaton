@@ -6,11 +6,16 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { stripe } from "@/lib/stripe";
+import { isAdmin } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.orgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!isAdmin(session)) {
+    return NextResponse.json({ error: "Only org owners and admins can manage billing." }, { status: 403 });
   }
 
   const subscription = await prisma.subscription.findUnique({

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { MarketingNav } from "@/components/shared/MarketingNav";
 import { PLANS } from "@/lib/plans";
+import { TryDemoButton } from "@/components/marketing/TryDemoButton";
 
 export default async function HomePage() {
   const session = await getServerSession(authOptions);
@@ -42,6 +43,7 @@ export default async function HomePage() {
             <Link href="/check" className="btn-outline-dark" style={{ padding: "13px 28px", background: "transparent", color: "var(--text-primary)", border: "1.5px solid var(--text-primary)", borderRadius: 8, fontSize: 15, fontWeight: 600, textDecoration: "none" }}>
               Check if it applies →
             </Link>
+            <TryDemoButton variant="secondary" label="Try a live demo →" />
           </div>
           <div style={{ marginTop: 28, fontSize: 13, color: "var(--text-muted)" }}>
             No credit card required · Takes only minutes · Built for EU SMBs
@@ -215,6 +217,7 @@ export default async function HomePage() {
             <Link href="/check" className="btn-outline-dark" style={{ display: "inline-block", padding: "13px 24px", background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 15, textDecoration: "none" }}>
               Check if it applies to you →
             </Link>
+            <TryDemoButton variant="secondary" label="Try a live demo →" />
           </div>
           <div style={{ marginTop: 16, fontSize: 13, color: "var(--text-muted)", fontFamily: "IBM Plex Mono, monospace" }}>
             14-day free trial · Cancel anytime
@@ -232,6 +235,7 @@ export default async function HomePage() {
             <Link href="/check"   className="nav-link-hover" style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none" }}>Applicability checker</Link>
             <Link href="/privacy" className="nav-link-hover" style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none" }}>Privacy</Link>
             <Link href="/terms"   className="nav-link-hover" style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none" }}>Terms</Link>
+            <a href="/llms.txt" className="nav-link-hover" style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none" }} title="Machine-readable summary of this site, for AI agents and crawlers">llms.txt</a>
           </div>
         </div>
         <div style={{ maxWidth: 1100, margin: "12px auto 0", fontSize: 11, color: "var(--text-muted)", lineHeight: 1.7 }}>

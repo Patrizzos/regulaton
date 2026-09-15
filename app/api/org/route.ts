@@ -6,6 +6,9 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
+import { createAlert } from "@/lib/alerts";
+import { requireAccess } from "@/lib/subscription";
+import { isAdmin } from "@/lib/auth";
 
 const UpdateOrgSchema = z.object({
   name:           z.string().min(1).optional(),
@@ -18,6 +21,13 @@ const UpdateOrgSchema = z.object({
 export async function PATCH(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.orgId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  if (!isAdmin(session)) {
+    return NextResponse.json({ error: "Only org owners and admins can edit organisation details." }, { status: 403 });
+  }
+
+  const denied = await requireAccess(session.orgId);
+  if (denied) return denied;
 
   const body   = await req.json();
   const parsed = UpdateOrgSchema.safeParse(body);
@@ -45,10 +55,20 @@ export async function PATCH(req: NextRequest) {
     (parsed.data.country !== undefined && parsed.data.country !== before?.country);
 
   if (contentFieldsChanged) {
-    await prisma.complianceDocument.updateMany({
-      where: { organizationId: session.orgId },
+    const { count } = await prisma.complianceDocument.updateMany({
+      where: { organizationId: session.orgId, status: { not: "NEEDS_UPDATE" } },
       data:  { status: "NEEDS_UPDATE", staleReason: "ORG_CHANGED" },
     });
+
+    if (count > 0) {
+      await createAlert(
+        session.orgId,
+        "DOCUMENT_NEEDS_UPDATE",
+        "Documents need updating",
+        `Your organisation details changed. ${count} document${count === 1 ? "" : "s"} now need${count === 1 ? "s" : ""} to be regenerated.`,
+        "/documents"
+      );
+    }
   }
 
   return NextResponse.json({

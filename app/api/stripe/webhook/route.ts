@@ -75,6 +75,22 @@ export async function POST(req: NextRequest) {
     return new NextResponse(`Webhook error: ${err.message}`, { status: 400 });
   }
 
+  // Claim this event ID before doing any work. Stripe delivers at-least-once,
+  // so the same event can arrive twice (e.g. if we were slow to respond the
+  // first time) — create() hits the unique constraint on a duplicate and we
+  // skip reprocessing, rather than e.g. creating a second "payment failed"
+  // alert for the same underlying failure.
+  try {
+    await prisma.processedWebhookEvent.create({
+      data: { id: event.id, type: event.type },
+    });
+  } catch (err: any) {
+    if (err?.code === "P2002") {
+      return new NextResponse("OK (duplicate delivery, already processed)", { status: 200 });
+    }
+    throw err;
+  }
+
   try {
     switch (event.type) {
 
