@@ -153,7 +153,7 @@ export async function GET(
   const buffer   = await Packer.toBuffer(wordDoc);
   const filename = `${orgName.replace(/[^a-z0-9]/gi, "-").toLowerCase()}-${params.type}.docx`;
 
-  return new NextResponse(buffer, {
+  return new NextResponse(new Uint8Array(buffer), {
     headers: {
       "Content-Type":        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       "Content-Disposition": `attachment; filename="${filename}"`,
