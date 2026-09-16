@@ -30,8 +30,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
   }
 
+  if (!stripe) {
+    return NextResponse.json({ error: "Payment processing is not configured." }, { status: 503 });
+  }
+
   const plan = parsed.data.plan as PlanKey;
   const priceId = getPriceId(plan);
+  if (!priceId) {
+    return NextResponse.json({ error: "Plan not configured." }, { status: 503 });
+  }
 
   // Get or create Stripe customer
   const subscription = await prisma.subscription.findUnique({

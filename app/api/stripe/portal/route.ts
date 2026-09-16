@@ -22,6 +22,10 @@ export async function POST(req: NextRequest) {
     where: { organizationId: session.orgId },
   });
 
+  if (!stripe) {
+    return NextResponse.json({ error: "Payment processing is not configured." }, { status: 503 });
+  }
+
   if (!subscription?.stripeCustomerId) {
     return NextResponse.json(
       { error: "No billing account found. Please subscribe first." },
