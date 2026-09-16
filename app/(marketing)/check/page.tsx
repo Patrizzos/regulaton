@@ -45,6 +45,7 @@ function calculateResult(a: Answers): Result {
         "Based on your answers, your organisation operates entirely outside the EU and does not serve EU-based customers or employees. The EU AI Act applies based on where the AI's impact is felt, not where the company is headquartered, but without EU market presence, you're outside scope for now.",
       obligations: [],
       score: 0,
+      size: a.size,
     };
   }
 
