@@ -30,10 +30,10 @@ export default async function HomePage() {
             <em style={{ fontStyle: "italic", color: "#059669" }}>before</em>{" "}
             you need it.
           </h1>
-          <p className="mx-auto lg:mx-0" style={{ fontSize: 17, color: "var(--text-secondary)", lineHeight: 1.65, margin: "0 0 12px", maxWidth: 460 }}>
+          <p className="mx-auto lg:mx-0" style={{ fontSize: 17, color: "var(--text-secondary)", lineHeight: 1.65, marginBottom: "12px", maxWidth: 460 }}>
             Article 4 (AI literacy) is already in force. Annex III high-risk deadlines have been extended to December 2027, giving you runway to get this right, not a reason to delay.
           </p>
-          <p className="mx-auto lg:mx-0" style={{ fontSize: 15, color: "var(--text-secondary)", lineHeight: 1.6, margin: "0 0 32px", maxWidth: 440 }}>
+          <p className="mx-auto lg:mx-0" style={{ fontSize: 15, color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: "32px", maxWidth: 440 }}>
             Regulaton helps EU SMBs document their AI tool usage, generate required compliance documents, and manage compliance posture over time.
           </p>
           <div className="justify-center lg:justify-start" style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
