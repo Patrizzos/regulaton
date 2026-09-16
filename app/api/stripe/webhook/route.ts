@@ -7,9 +7,6 @@ import { prisma } from "@/lib/db";
 import { Plan, SubscriptionStatus } from "@prisma/client";
 import Stripe from "stripe";
 
-// Required: disable body parsing so we can verify the raw signature
-export const config = { api: { bodyParser: false } };
-
 function stripeStatusToPrisma(status: Stripe.Subscription.Status): SubscriptionStatus {
   switch (status) {
     case "active":             return SubscriptionStatus.ACTIVE;
@@ -61,6 +58,10 @@ export async function POST(req: NextRequest) {
 
   if (!signature) {
     return new NextResponse("Missing stripe-signature header", { status: 400 });
+  }
+
+  if (!stripe) {
+    return new NextResponse("Stripe not configured", { status: 400 });
   }
 
   let event: Stripe.Event;
