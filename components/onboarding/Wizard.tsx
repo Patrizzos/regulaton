@@ -11,9 +11,9 @@ interface LibraryTool {
   providerCompany: string;
   category: string;
   defaultRiskLevel: string;
-  riskRationale: string;
-  complianceNotes: string;
-  logoSlug?: string;
+  riskRationale: string | null;
+  complianceNotes: string | null;
+  logoSlug: string | null;
 }
 
 interface SelectedTool extends LibraryTool {
