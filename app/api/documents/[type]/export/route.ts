@@ -15,10 +15,8 @@ import {
 function blockToElements(block: any): (Paragraph | Table)[] {
   switch (block.type) {
     case "heading": {
-      const levelMap: Record<number, string> = {
-        1: HeadingLevel.HEADING_1, 2: HeadingLevel.HEADING_2, 3: HeadingLevel.HEADING_3,
-      };
-      return [new Paragraph({ text: block.text, heading: levelMap[block.level] ?? HeadingLevel.HEADING_2, spacing: { before: 300, after: 120 } })];
+      const heading = block.level === 1 ? HeadingLevel.HEADING_1 : block.level === 3 ? HeadingLevel.HEADING_3 : HeadingLevel.HEADING_2;
+      return [new Paragraph({ text: block.text, heading, spacing: { before: 300, after: 120 } })];
     }
     case "paragraph":
       return [new Paragraph({ children: [new TextRun({ text: block.text, size: 22 })], spacing: { after: 160 } })];
