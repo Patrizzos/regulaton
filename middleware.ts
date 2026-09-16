@@ -33,9 +33,13 @@ const PUBLIC_PATHS = [
 // external scripts, no iframes, no third-party fetch() targets — verified by
 // reading globals.css and every component render path before writing this.
 function buildCsp(nonce: string): string {
+  // Next.js dev mode requires 'unsafe-eval' for HMR and source maps.
+  // Never included in production — Next.js compiles everything away and
+  // never calls eval() in the built output.
+  const isDev = process.env.NODE_ENV === "development";
   return [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https://avatars.githubusercontent.com",
     "font-src 'self'",
@@ -92,6 +96,10 @@ export async function middleware(req: NextRequest) {
     // Any new route added under this path MUST implement its own auth check —
     // there is no session/org protection here at all.
     pathname.startsWith("/api/admin") ||
+    // Demo endpoint must be public — the whole point is unauthenticated visitors
+    // clicking "Try demo" from the marketing page. Without this, the middleware
+    // redirects them to /login before the route can create their session.
+    pathname === "/api/demo/create" ||
     pathname.startsWith("/_next") ||
     pathname === "/favicon.ico" ||
     pathname === "/robots.txt" ||
