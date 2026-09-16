@@ -2,20 +2,22 @@
 // app/(auth)/login/page.tsx
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 
-export default function LoginPage() {
+// Inner component — isolates useSearchParams() so the outer page
+// can wrap it in Suspense for Next.js static prerendering.
+function LoginContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const params = useSearchParams();
 
-  const verify  = params.get("verify") === "1";
-  const error   = params.get("error");
+  const verify      = params.get("verify") === "1";
+  const error       = params.get("error");
   const callbackUrl = params.get("callbackUrl") ?? "/dashboard";
 
-  const [email, setEmail]       = useState("");
-  const [sending, setSending]   = useState(false);
-  const [sent, setSent]         = useState(false);
+  const [email,   setEmail]   = useState("");
+  const [sending, setSending] = useState(false);
+  const [sent,    setSent]    = useState(false);
 
   // Already signed in → redirect
   useEffect(() => {
@@ -125,6 +127,24 @@ export default function LoginPage() {
   );
 }
 
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div style={{
+        minHeight: "100vh",
+        background: "var(--bg)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}>
+        <div style={{ color: "var(--text-muted)", fontSize: 14 }}>Loading…</div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
+  );
+}
+
 const styles: Record<string, React.CSSProperties> = {
   page: {
     minHeight: "100vh",
@@ -187,8 +207,8 @@ const styles: Record<string, React.CSSProperties> = {
     textAlign: "center",
     position: "relative",
   },
-  field: { marginBottom: 14 },
-  label: { display: "block", fontSize: 13, fontWeight: 500, color: "var(--text-primary)", marginBottom: 6 },
+  field:  { marginBottom: 14 },
+  label:  { display: "block", fontSize: 13, fontWeight: 500, color: "var(--text-primary)", marginBottom: 6 },
   input: {
     width: "100%",
     padding: "10px 12px",
@@ -214,11 +234,8 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: "pointer",
     fontFamily: "Inter, sans-serif",
   },
-  terms: { fontSize: 11, color: "var(--text-muted)", textAlign: "center", marginTop: 16, lineHeight: 1.5 },
-  sentBox: {
-    textAlign: "center",
-    padding: "20px 0",
-  },
+  terms:    { fontSize: 11, color: "var(--text-muted)", textAlign: "center", marginTop: 16, lineHeight: 1.5 },
+  sentBox:  { textAlign: "center", padding: "20px 0" },
   errorBox: {
     background: "var(--danger-bg)",
     border: "1px solid var(--danger-border)",
